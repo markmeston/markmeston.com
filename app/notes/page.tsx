@@ -52,7 +52,7 @@ export default function NotesPage() {
             </p>
             <p className="mt-4 text-xs leading-relaxed tracking-wide text-white/75 md:text-[0.813rem]">
               Home is deliberately minimal—a living card over a procedural grid—and everything heavier lives in{' '}
-              <a href="https://orbit.markmeston.com" className={link} target="_blank" rel="noopener noreferrer">
+              <a href="https://orbit-terminal.io" className={link} target="_blank" rel="noopener noreferrer">
                 Orbit
               </a>
               .

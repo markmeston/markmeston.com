@@ -197,7 +197,7 @@ export default function MinimalHexCard() {
 
           <div className="flex flex-col gap-3 pt-1">
             <motion.a
-              href="https://orbit.markmeston.com"
+              href="https://orbit-terminal.io"
               target="_blank"
               rel="noopener noreferrer"
               className={`${linkInteract} relative flex w-full items-center justify-center overflow-hidden bg-white py-4 px-6 text-[0.6875rem] font-bold uppercase text-black`}
