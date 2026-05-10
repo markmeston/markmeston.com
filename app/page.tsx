@@ -19,7 +19,13 @@ const HEX_TILE_SVG = encodeURIComponent(
   </svg>`,
 );
 
-
+/** Cursor rail physics: heavy mass, low stiffness, high damping — no tail bounce. */
+const sTierSpringConfig = {
+  mass: 1.5,
+  stiffness: 40,
+  damping: 25,
+  restDelta: 0.001,
+} as const;
 
 function subscribeReducedMotion(onChange: () => void) {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -48,9 +54,8 @@ export default function MinimalHexCard() {
 
   const cursorXpct = useMotionValue(50);
   const cursorYpct = useMotionValue(50);
-  const spring = { stiffness: 38, damping: 22, mass: 0.9 };
-  const smoothX = useSpring(cursorXpct, spring);
-  const smoothY = useSpring(cursorYpct, spring);
+  const smoothX = useSpring(cursorXpct, sTierSpringConfig);
+  const smoothY = useSpring(cursorYpct, sTierSpringConfig);
 
   /** 0 idle → 1 near logo centroid */
   const logoGlowSignal = useMotionValue(0);
