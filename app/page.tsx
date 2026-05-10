@@ -12,7 +12,7 @@ import { useRef, useSyncExternalStore } from 'react';
 
 import { MAILTO, ORBIT_DOCTRINE, ORBIT_ORIGIN } from '@/lib/site-meta';
 
-/** Tiled pointy hex — single stroke tile; kinetic layer drifts infinitely. */
+/** Tiled pointy hex tile; parallax transforms follow cursor rails below. */
 const HEX_TILE_SVG = encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='92' height='80' viewBox='0 0 92 80'>
     <path d='M46 4 L87 29.43 L87 50.57 L46 76 L5 50.57 L5 29.43 Z' fill='none' stroke='rgba(255,255,255,1)' stroke-width='0.9' opacity='1'/>
@@ -64,6 +64,10 @@ export default function MinimalHexCard() {
 
   const voidMask = useMotionTemplate`radial-gradient(760px circle at ${smoothX}% ${smoothY}%, rgba(255,255,255,0.042) 0%, transparent 62%)`;
 
+  /** Parallax: cursor high → lattice shifts down (+y); mirrored X for cohesion (Fitts-aligned depth cue). */
+  const hexLayerX = useTransform(smoothX, [0, 100], [-22, 22]);
+  const hexLayerY = useTransform(smoothY, [0, 100], [32, -32]);
+
   const linkInteract =
     'pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
@@ -96,25 +100,16 @@ export default function MinimalHexCard() {
         logoGlowSignal.set(0);
       }}
     >
-      {/* —— Void Physics: drift field + cursor-stalked luminous void —— */}
+      {/* —— Void Physics: hex lattice parallax tied to smoothed cursor + radial veil —— */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.065]"
-        style={{ backgroundImage: hexBg, backgroundSize: '92px 80px' }}
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { x: [-12, 8, -12], y: [-6, 10, -6] }
-        }
-        transition={
-          prefersReducedMotion
-            ? undefined
-            : {
-                duration: 220,
-                repeat: Infinity,
-                ease: 'linear',
-              }
-        }
+        className="pointer-events-none absolute -inset-[12vmin] z-0 opacity-[0.065] [will-change:transform]"
+        style={{
+          backgroundImage: hexBg,
+          backgroundSize: '92px 80px',
+          backgroundPosition: '50% 50%',
+          ...(prefersReducedMotion ? {} : { x: hexLayerX, y: hexLayerY }),
+        }}
       />
       <motion.div
         aria-hidden
