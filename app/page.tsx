@@ -10,12 +10,16 @@ import {
 } from 'framer-motion';
 import { useRef, useSyncExternalStore } from 'react';
 
+import { MAILTO, ORBIT_DOCTRINE, ORBIT_ORIGIN } from '@/lib/site-meta';
+
 /** Tiled pointy hex — single stroke tile; kinetic layer drifts infinitely. */
 const HEX_TILE_SVG = encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='92' height='80' viewBox='0 0 92 80'>
     <path d='M46 4 L87 29.43 L87 50.57 L46 76 L5 50.57 L5 29.43 Z' fill='none' stroke='rgba(255,255,255,1)' stroke-width='0.9' opacity='1'/>
   </svg>`,
 );
+
+
 
 function subscribeReducedMotion(onChange: () => void) {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -67,7 +71,7 @@ export default function MinimalHexCard() {
 
   return (
     <main
-      className="relative flex min-h-screen w-full cursor-default items-center justify-center overflow-hidden bg-[#000000] font-mono text-white selection:bg-white selection:text-black"
+      className="relative flex w-full flex-1 cursor-default flex-col items-center justify-center overflow-hidden bg-[#000000] font-mono text-white selection:bg-white selection:text-black"
       onPointerMove={(e) => {
         const { clientX, clientY, currentTarget } = e;
         const { width, height, left, top } =
@@ -119,9 +123,9 @@ export default function MinimalHexCard() {
       />
 
       {/* —— Identity shell —— */}
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center justify-center p-8 pointer-events-none">
+      <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center px-8 py-12 pointer-events-none">
         <motion.div
-          className="pointer-events-none flex w-full flex-col gap-10 border border-white/20 bg-black/65 p-12 text-center shadow-2xl shadow-black/70 backdrop-blur-md transition-[border-color] duration-500 hover:border-white/38"
+          className="pointer-events-none flex w-full flex-col gap-8 border border-white/20 bg-black/65 p-11 text-center shadow-2xl shadow-black/70 backdrop-blur-md transition-[border-color] duration-500 hover:border-white/38 sm:p-12"
           initial={
             prefersReducedMotion
               ? { opacity: 1, y: 0 }
@@ -189,38 +193,46 @@ export default function MinimalHexCard() {
             />
           </div>
 
-          <div className="flex flex-col gap-3 text-sm tracking-[0.2em] text-white/80">
-            <a href="mailto:mark@markmeston.com" className={linkInteract}>
-              MARK@MARKMESTON.COM
-            </a>
-          </div>
+          <p className="mx-auto max-w-[22rem] text-center text-[0.6875rem] font-medium leading-relaxed tracking-wide text-white/[0.62] md:max-w-md">
+            {ORBIT_DOCTRINE}
+          </p>
 
-          <div className="flex flex-col gap-3 pt-1">
+          <div className="flex flex-col gap-4 pt-1">
             <motion.a
-              href="https://orbit-terminal.io"
+              href={ORBIT_ORIGIN}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${linkInteract} relative flex w-full items-center justify-center overflow-hidden bg-white py-4 px-6 text-[0.6875rem] font-bold uppercase text-black`}
-              style={{ letterSpacing: '0.22em', willChange: 'transform, box-shadow' }}
+              className={`${linkInteract} relative flex min-h-[3.625rem] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[1px] bg-white px-6 py-[1.15rem] text-[0.75rem] font-bold uppercase tracking-[0.2em] text-black sm:min-h-[3.75rem]`}
+              style={{ letterSpacing: '0.2em', willChange: 'transform, box-shadow' }}
+              aria-label="Open Orbit Terminal in a new tab"
               transition={{ type: 'spring', stiffness: 580, damping: 36 }}
               whileHover={{
                 backgroundColor: '#000000',
                 color: '#ffffff',
-                letterSpacing: '0.38em',
+                letterSpacing: '0.36em',
                 boxShadow:
-                  '0 0 0 1px rgba(255,255,255,.92), 0 0 48px rgba(255,255,255,.24), inset 0 0 92px rgba(255,255,255,.048)',
+                  '0 0 0 1px rgba(255,255,255,.92), 0 0 52px rgba(255,255,255,.26), inset 0 0 96px rgba(255,255,255,.048)',
               }}
-              whileTap={{ scale: 0.985 }}
+              whileTap={{ scale: 0.986 }}
             >
               <span className="relative z-10">INITIALIZE ORBIT</span>
             </motion.a>
 
-            <Link
-              href="/notes"
-              className={`flex w-full items-center justify-center border border-white/25 py-3 px-4 text-[0.625rem] font-bold uppercase tracking-[0.28em] text-white/72 transition-colors duration-300 hover:border-white/45 hover:bg-white/[0.04] hover:text-white/92 ${linkInteract}`}
-            >
-              NOTES & CHANGELOG
-            </Link>
+            <div className="flex flex-col gap-2 pt-2">
+              <a
+                href={MAILTO}
+                className={`${linkInteract} flex min-h-11 items-center justify-center py-3 text-[0.75rem] font-medium uppercase tracking-[0.18em] text-white/[0.78] transition-colors hover:text-white`}
+              >
+                MARK@MARKMESTON.COM
+              </a>
+
+              <Link
+                href="/notes"
+                className={`flex min-h-11 items-center justify-center border border-white/23 py-[0.6875rem] px-5 text-[0.625rem] font-bold uppercase tracking-[0.28em] text-white/68 transition-colors duration-300 hover:border-white/43 hover:bg-white/[0.04] hover:text-white/[0.93] ${linkInteract}`}
+              >
+                NOTES & CHANGELOG
+              </Link>
+            </div>
           </div>
         </motion.div>
       </div>

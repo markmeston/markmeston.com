@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { SiteDock } from "./components/SiteDock";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -62,7 +64,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-[100dvh] flex-col bg-black text-white">
+        <div className="flex min-h-[100dvh] flex-1 flex-col pb-[calc(8.125rem+env(safe-area-inset-bottom,0px))]">
+          {children}
+        </div>
+        <SiteDock />
+      </body>
     </html>
   );
 }
