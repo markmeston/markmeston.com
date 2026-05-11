@@ -8,16 +8,52 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion';
-import { useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import { MAILTO, ORBIT_DOCTRINE, ORBIT_ORIGIN } from '@/lib/site-meta';
 
-/** Tiled pointy hex tile; parallax transforms follow cursor rails below. */
-const HEX_TILE_SVG = encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' width='92' height='80' viewBox='0 0 92 80'>
-    <path d='M46 4 L87 29.43 L87 50.57 L46 76 L5 50.57 L5 29.43 Z' fill='none' stroke='rgba(255,255,255,1)' stroke-width='0.9' opacity='1'/>
-  </svg>`,
-);
+/** Pointy‑top hex tessellation geometry (proper honeycomb lattice). */
+
+function collectHexCenters(
+  w: number,
+  h: number,
+  R: number,
+): { x: number; y: number }[] {
+  const sqrt3 = Math.sqrt(3);
+  const horiz = sqrt3 * R;
+  const vert = 1.5 * R;
+  const pad = R * 4;
+  const list: { x: number; y: number }[] = [];
+  let row = 0;
+  for (let y = -pad + R; y <= h + pad; y += vert, row++) {
+    const xOff = (row % 2) * (horiz / 2);
+    for (let x = -pad + xOff; x <= w + pad; x += horiz) {
+      list.push({ x, y });
+    }
+  }
+  return list;
+}
+
+function vertexPointyTop(cx: number, cy: number, R: number, k: number) {
+  const angle = -Math.PI / 2 + k * (Math.PI / 3);
+  return {
+    x: cx + R * Math.cos(angle),
+    y: cy + R * Math.sin(angle),
+  };
+}
+
+function appendHexPath(
+  ctx: CanvasRenderingContext2D,
+  c: { x: number; y: number },
+  R: number,
+) {
+  const v0 = vertexPointyTop(c.x, c.y, R, 0);
+  ctx.moveTo(v0.x, v0.y);
+  for (let kk = 1; kk <= 6; kk++) {
+    const v = vertexPointyTop(c.x, c.y, R, kk);
+    ctx.lineTo(v.x, v.y);
+  }
+}
 
 /** Cursor rail physics: heavy mass, low stiffness, high damping — no tail bounce. */
 const sTierSpringConfig = {
@@ -51,6 +87,8 @@ function usePrefersReducedMotion() {
 export default function MinimalHexCard() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const logoRef = useRef<HTMLHeadingElement>(null);
+  const hexWrapRef = useRef<HTMLDivElement>(null);
+  const hexCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const cursorXpct = useMotionValue(50);
   const cursorYpct = useMotionValue(50);
@@ -76,7 +114,48 @@ export default function MinimalHexCard() {
   const linkInteract =
     'pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
-  const hexBg = `url("data:image/svg+xml,${HEX_TILE_SVG}")`;
+  useEffect(() => {
+    const wrap = hexWrapRef.current;
+    const canvas = hexCanvasRef.current;
+    if (!wrap || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const hexR = 26;
+
+    const draw = () => {
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w < 2 || h < 2) return;
+
+      const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const centers = collectHexCenters(w, h, hexR);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.beginPath();
+      for (const c of centers) {
+        appendHexPath(ctx, c, hexR);
+      }
+      ctx.stroke();
+    };
+
+    const ro = new ResizeObserver(draw);
+    ro.observe(wrap);
+    draw();
+
+    return () => ro.disconnect();
+  }, []);
 
   return (
     <main
@@ -105,17 +184,17 @@ export default function MinimalHexCard() {
         logoGlowSignal.set(0);
       }}
     >
-      {/* —— Void Physics: hex lattice parallax tied to smoothed cursor + radial veil —— */}
+      {/* —— True honeycomb (canvas)—CSS repeat cannot tessellate a lone hex SVG. Parallax unchanged. */}
       <motion.div
+        ref={hexWrapRef}
         aria-hidden
-        className="pointer-events-none absolute -inset-[12vmin] z-0 opacity-[0.065] [will-change:transform]"
+        className="pointer-events-none absolute -inset-[12vmin] z-0 opacity-[0.098] [will-change:transform]"
         style={{
-          backgroundImage: hexBg,
-          backgroundSize: '92px 80px',
-          backgroundPosition: '50% 50%',
           ...(prefersReducedMotion ? {} : { x: hexLayerX, y: hexLayerY }),
         }}
-      />
+      >
+        <canvas ref={hexCanvasRef} className="block size-full min-h-full min-w-full" />
+      </motion.div>
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[1] mix-blend-screen"
